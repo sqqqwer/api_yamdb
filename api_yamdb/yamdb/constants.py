@@ -1,3 +1,5 @@
 from typing import Final
 
-TEXT_LENGTH: Final[int] = 20
+STR_OUTPUT_LIMIT: Final[int] = 30
+NAME_MAX_LENGTH: Final[int] = 256
+SLUG_MAX_LENGTH: Final[int] = 50
