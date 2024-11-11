@@ -52,9 +52,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.title[:STR_OUTPUT_LIMIT]
- 
 
- class Review(models.Model):
+
+class Review(models.Model):
     text = models.TextField(
         'Текст отзыва'
     )
