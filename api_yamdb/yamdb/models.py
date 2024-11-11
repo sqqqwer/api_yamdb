@@ -1,7 +1,8 @@
+from django.core.validators import MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from posts.constants import (
+from yamdb.constants import (
     STR_OUTPUT_LIMIT,
     NAME_MAX_LENGTH,
     SLUG_MAX_LENGTH
@@ -51,3 +52,36 @@ class Category(models.Model):
 
     def __str__(self):
         return self.title[:STR_OUTPUT_LIMIT]
+ 
+
+ class Review(models.Model):
+    text = models.TextField(
+        'Текст отзыва'
+    )
+    # Ниже заглушка пока модели пользователя нет
+    # author = models.ForeignKey(
+    #     User,
+    #     on_delete=models.CASCADE,
+    #     verbose_name='Автор отзыва'
+    # )
+    author = models.SmallIntegerField()
+    score = models.SmallIntegerField(
+        'Оценка пользователя',
+        validators=(MaxValueValidator(10),)
+    )
+    pub_date = models.DateTimeField(
+        'Дата добавления',
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        default_related_name = 'reviews'
+
+    def __str__(self):
+        return (
+            f'Пользователь: "{self.author}", '
+            f'текст отзыва: "{self.text[:STR_OUTPUT_LIMIT]}", '
+            f'оценка: "{self.score}".'
+
+        )
