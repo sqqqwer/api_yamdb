@@ -3,13 +3,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from yamdb.models import (
-    Category,
-    Genre,
-    Review,
-    Title
-)
-
+from yamdb.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
