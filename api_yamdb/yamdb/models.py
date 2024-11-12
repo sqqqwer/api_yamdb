@@ -17,7 +17,7 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField()
     # rating - Определяется на основе отзывов
     description = models.TextField(null=True, blank=True)
-    genres = models.ManyToManyField('Genre')
+    genre = models.ManyToManyField('Genre')
     category = models.ForeignKey('Category')
     # null=True, blank=False, on_delete=models.SET_NULL) - на будущее
 
