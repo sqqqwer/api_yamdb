@@ -17,7 +17,7 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField()
     # rating - Определяется на основе отзывов
     description = models.TextField(null=True, blank=True)
-    genres = models.ManyToManyField('Genre')
+    genres = models.ManyToManyField('Genre', through='TitleGenre')
     # category = models.ForeignKey('Category')
     # null=True, blank=False, on_delete=models.SET_NULL) - на будущее
     category = models.ForeignKey(
@@ -86,3 +86,8 @@ class Review(models.Model):
             f'текст отзыва: "{self.text[:STR_OUTPUT_LIMIT]}", '
             f'оценка: "{self.score}".'
         )
+
+
+class TitleGenre(models.Model):
+    title = models.ForeignKey('Title', null=True, on_delete=models.SET_NULL)
+    genre = models.ForeignKey('Genre', null=True, on_delete=models.SET_NULL)
