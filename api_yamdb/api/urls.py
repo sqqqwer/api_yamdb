@@ -1,9 +1,7 @@
-from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
-from api.views import CommentViewSet, ReviewViewSet, TitleViewSet
+from api.views import CommentViewSet, ReviewViewSet, TitleViewSet, SignUp, VerifyEmail
 
 router_v1 = DefaultRouter()
 router_v1.register('titles/', TitleViewSet, basename='title')
@@ -18,6 +16,9 @@ router_v1.register(
 )
 
 urlpatterns = [
-    path('v1/auth/signup/', include('djoser.urls.jwt')),
-    path('v1/', include(router_v1.urls)),
+    path('', SignUp.as_view(), name='signup'),
+    path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
+    path('auth/signup/', include('djoser.urls.jwt')),
+    path('', include(router_v1.urls)),
 ]
+urlpatterns = [path('v1/', include(urlpatterns))]

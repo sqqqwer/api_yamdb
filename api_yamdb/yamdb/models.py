@@ -1,6 +1,8 @@
 from django.core.validators import MaxValueValidator
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from yamdb.constants import (
     STR_OUTPUT_LIMIT,
@@ -10,6 +12,23 @@ from yamdb.constants import (
 
 
 User = get_user_model()
+
+
+class User(AbstractUser):
+    email = models.EmailField(unique=True, blank=False, null=False)
+    is_verified = models.BooleanField(default=False)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return (
+            {
+                'refresh': str(refresh),
+                'refresh': str(refresh.access_token),
+            }
+        )
 
 
 class Title(models.Model):

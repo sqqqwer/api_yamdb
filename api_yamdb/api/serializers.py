@@ -7,11 +7,28 @@ from yamdb.models import (
     Category,
     Genre,
     Review,
-    Title
+    Title,
+    User
 )
 
-
 User = get_user_model()
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    tokens = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['email', 'username']
+        read_only_fields = ['id',]
+
+
+class EmailVerificationSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(max_length=555)
+
+    class Meta:
+        model = User
+        fields = ['token']
 
 
 class ReviewSerializer(serializers.ModelSerializer):
