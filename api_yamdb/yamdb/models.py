@@ -11,9 +11,6 @@ from yamdb.constants import (
 )
 
 
-User = get_user_model()
-
-
 class User(AbstractUser):
     email = models.EmailField(unique=True, blank=False, null=False)
     is_verified = models.BooleanField(default=False)
@@ -29,6 +26,9 @@ class User(AbstractUser):
                 'refresh': str(refresh.access_token),
             }
         )
+
+
+User = get_user_model()
 
 
 class Title(models.Model):

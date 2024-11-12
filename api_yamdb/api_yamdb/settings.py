@@ -62,6 +62,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "yamdb.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
