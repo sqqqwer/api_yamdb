@@ -2,21 +2,22 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
-from api.views import CommentsViewSet, ReviewsViewSet, TitlesViewSet
+
+from api.views import CommentViewSet, ReviewViewSet, TitleViewSet
 
 router_v1 = DefaultRouter()
-router_v1.register('titles/', TitlesViewSet, basename='titles')
+router_v1.register('titles/', TitleViewSet, basename='title')
 router_v1.register(
     'titles/(?P<title_id>\d+)/reviews',
-    ReviewsViewSet, basename='reviews'
+    ReviewViewSet, basename='review'
 )
 router_v1.register(
     'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-    CommentsViewSet,
-    basename='comments'
+    CommentViewSet,
+    basename='comment'
 )
 
 urlpatterns = [
-    path('auth/signup/', include('djoser.urls.jwt')),
-    path('', include(router_v1.urls)),
+    path('v1/auth/signup/', include('djoser.urls.jwt')),
+    path('v1/', include(router_v1.urls)),
 ]
