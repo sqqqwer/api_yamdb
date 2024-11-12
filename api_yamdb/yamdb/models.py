@@ -31,7 +31,7 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self):
-        return self.title[:STR_OUTPUT_LIMIT]
+        return self.name[:STR_OUTPUT_LIMIT]
 
 
 class Genre(models.Model):
@@ -43,7 +43,7 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
-        return self.title[:STR_OUTPUT_LIMIT]
+        return self.name[:STR_OUTPUT_LIMIT]
 
 
 class Category(models.Model):
@@ -55,7 +55,7 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title[:STR_OUTPUT_LIMIT]
+        return self.name[:STR_OUTPUT_LIMIT]
 
 
 class Review(models.Model):
