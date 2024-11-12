@@ -17,9 +17,13 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField()
     # rating - Определяется на основе отзывов
     description = models.TextField(null=True, blank=True)
-    genre = models.ManyToManyField('Genre')
-    category = models.ForeignKey('Category')
+    genres = models.ManyToManyField('Genre')
+    # category = models.ForeignKey('Category')
     # null=True, blank=False, on_delete=models.SET_NULL) - на будущее
+    category = models.ForeignKey(
+        'Category',
+        null=True, blank=False, on_delete=models.SET_NULL
+    )
 
     class Meta:
         default_related_name = 'titles'
@@ -58,13 +62,11 @@ class Review(models.Model):
     text = models.TextField(
         'Текст отзыва'
     )
-    # Ниже заглушка пока модели пользователя нет
-    # author = models.ForeignKey(
-    #     User,
-    #     on_delete=models.CASCADE,
-    #     verbose_name='Автор отзыва'
-    # )
-    author = models.SmallIntegerField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор отзыва'
+    )
     score = models.SmallIntegerField(
         'Оценка пользователя',
         validators=(MaxValueValidator(10),)
@@ -83,5 +85,4 @@ class Review(models.Model):
             f'Пользователь: "{self.author}", '
             f'текст отзыва: "{self.text[:STR_OUTPUT_LIMIT]}", '
             f'оценка: "{self.score}".'
-
         )
