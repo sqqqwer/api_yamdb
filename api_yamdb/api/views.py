@@ -1,18 +1,24 @@
 from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
-
-from api.permissions import IsAuthorOrReadOnly
+from yamdb.models import Title
 from api.serializers import ReviewSerializer
-from yamdb.models import Review
+from api.permissions import IsAuthorOrReadOnly
+from django.shortcuts import get_object_or_404
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с отзывами."""
 
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = LimitOffsetPagination
 
-    # def perform_create(self, serializer):
-    #     serializer.save(author=self.request.user)
+    def get_title_obj(self): 
+        title_id = self.kwargs.get('title_id')
+        return get_object_or_404(Title, pk=title_id)
+
+    def get_queryset(self):
+        title = self.get_title_obj()
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = self.reviews.all()
+        serializer.save(author=self.request.user, title=title)
