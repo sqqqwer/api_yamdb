@@ -8,27 +8,9 @@ from yamdb.models import (
     Genre,
     Review,
     Title,
-    User
 )
 
 User = get_user_model()
-
-
-class SignUpSerializer(serializers.ModelSerializer):
-    tokens = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ['email', 'username']
-        read_only_fields = ['id',]
-
-
-class EmailVerificationSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(max_length=555)
-
-    class Meta:
-        model = User
-        fields = ['token']
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -95,3 +77,21 @@ class GetTitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
+
+
+class EmailValidationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
+
+    def validate_username(self, username):
+        if username == 'me':
+            raise serializers.ValidationError('Who "me"?')
+        return username
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code',)

@@ -10,10 +10,17 @@ from yamdb.constants import (
     SLUG_MAX_LENGTH
 )
 
+ROLES = ('user', 'moderator', 'admin', 'superuser')
+
 
 class User(AbstractUser):
     email = models.EmailField(unique=True, blank=False, null=False)
-    is_verified = models.BooleanField(default=False)
+    role = models.CharField(
+        max_length=15,
+        choices=ROLES
+    )
+    confirmation_code = models.CharField(max_length=5)
+    bio = models.TextField(max_length=511)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -26,9 +33,6 @@ class User(AbstractUser):
                 'refresh': str(refresh.access_token),
             }
         )
-
-
-User = get_user_model()
 
 
 class Title(models.Model):
