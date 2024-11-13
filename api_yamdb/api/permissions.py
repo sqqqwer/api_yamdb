@@ -6,6 +6,12 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
     админам, модераторам. А безопасные методы пропускает.
     """
 
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            or request.method in permissions.SAFE_METHODS
+        )
+
     def has_object_permission(self, request, view, obj):
         return (
             request.method in permissions.SAFE_METHODS

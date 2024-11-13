@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from yamdb.models import Category, Genre, Review, Title
+from yamdb.models import Category, Genre, Review, Title, Comment
 
 User = get_user_model()
 
@@ -80,3 +80,17 @@ class GetTitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с комментариями."""
+
+    author = serializers.SlugRelatedField(
+        'username',
+        read_only=True,
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date', 'review')
+        model = Comment
+        read_only_fields = ('review',)
