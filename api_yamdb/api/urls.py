@@ -8,11 +8,12 @@ from api.views import CommentViewSet, ReviewViewSet, TitleViewSet
 router_v1 = DefaultRouter()
 router_v1.register('titles/', TitleViewSet, basename='title')
 router_v1.register(
-    'titles/(?P<title_id>\d+)/reviews',
-    ReviewViewSet, basename='review'
+    'titles/(?P<title_id>\d+)/reviews/',
+    ReviewViewSet,
+    basename='review'
 )
 router_v1.register(
-    'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments/',
     CommentViewSet,
     basename='comment'
 )

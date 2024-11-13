@@ -7,6 +7,7 @@ from django.db import models
 from yamdb.abstracts import AbstractTagModel
 from yamdb.constants import NAME_MAX_LENGTH, STR_OUTPUT_LIMIT
 
+
 User = get_user_model()
 
 
@@ -60,18 +61,23 @@ class Review(models.Model):
         'Текст отзыва'
     )
     author = models.ForeignKey(
-        User,
+        'User',
         on_delete=models.CASCADE,
         verbose_name='Автор отзыва'
     )
     score = models.SmallIntegerField(
         'Оценка пользователя',
-        validators=(MaxValueValidator(10),)
+        validators=[MinValueValidator(1), MaxValueValidator(10),]
     )
     pub_date = models.DateTimeField(
-        'Дата добавления',
+        'Дата добавления отзыва',
         auto_now_add=True,
         db_index=True
+    )
+    title = models.ForeignKey(
+        'Title',
+        on_delete=models.CASCADE,
+        verbose_name='Произведение'
     )
 
     class Meta:
@@ -88,3 +94,33 @@ class Review(models.Model):
 class TitleGenre(models.Model):
     title = models.ForeignKey('Title', null=True, on_delete=models.SET_NULL)
     genre = models.ForeignKey('Genre', null=True, on_delete=models.SET_NULL)
+
+
+class Comment(models.Model):
+    text = models.TextField(
+        'Текст комментария'
+    )
+    author = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        verbose_name='Автор комментария'
+    )
+    pub_date = models.DateTimeField(
+        'Дата добавления комментария',
+        auto_now_add=True,
+        db_index=True
+    )
+    review = models.ForeignKey(
+        'Review',
+        on_delete=models.CASCADE,
+        verbose_name='Отзыв'
+    )
+
+    class Meta:
+        default_related_name = 'comments'
+
+    def __str__(self):
+        return (
+            f'Пользователь: "{self.author}", '
+            f'Текст комментария : "{self.text[:STR_OUTPUT_LIMIT]}".'
+        )
