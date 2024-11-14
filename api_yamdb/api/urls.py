@@ -1,8 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt import views
 
-from api.views import CommentViewSet, ReviewViewSet, TitleViewSet, EmailValidationViewSet, TokenViewSet
+from api.views import CommentViewSet, RegistrationView, ReviewViewSet, TitleViewSet, TokenView, UserViewSet
 
 router_v1 = DefaultRouter()
 router_v1.register('titles/', TitleViewSet, basename='title')
@@ -15,11 +14,15 @@ router_v1.register(
     CommentViewSet,
     basename='comment'
 )
-router_v1.register('auth/signup/', EmailValidationViewSet, basename='signup')
-router_v1.register('auth/token/', TokenViewSet, basename='token')
+router_v1.register('users/', UserViewSet, basename='user')
+
+auth_list = [
+    path('signup/', RegistrationView, basename='signup'),
+    path('token/', TokenView, basename='token'),
+]
 
 urlpatterns = [
-    path('auth/token/', views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/', include(auth_list)),
     path('', include('djoser.urls.jwt')),
     path('', include(router_v1.urls)),
 ]

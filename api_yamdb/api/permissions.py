@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from rest_framework import permissions
 
 User = get_user_model()
@@ -12,3 +11,13 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or obj.author == request.user
         )
+
+
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == 'admin'
+
+
+class IsModerator(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == 'moderator'

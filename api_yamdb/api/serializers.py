@@ -80,19 +80,16 @@ class GetTitleSerializer(serializers.ModelSerializer):
         model = Title
 
 
-class EmailValidationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
         fields = ('username', 'email',)
 
-    def validate_username(self, username, email):
+    def validate_username(self, username):
         if username == 'me':
             raise serializers.ValidationError('Who "me"?')
         return username
-
-    def validate(self, attrs): # NB!
-        attrs['']
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -104,8 +101,16 @@ class TokenSerializer(serializers.ModelSerializer):
         if (get_object_or_404(User, username=attrs['username']).confirmation_code
                 != attrs['confirmation_code']):
             raise serializers.ValidationError('Неправильная пара данных.')
+        return attrs
 
 
-class TokenReturn(serializers.ModelSerializer):
+class TokenReturnSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('token',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        exclude = ('id',)

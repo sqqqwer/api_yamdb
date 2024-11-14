@@ -1,5 +1,4 @@
 from django.core.validators import MaxValueValidator
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -10,7 +9,7 @@ from yamdb.constants import (
     SLUG_MAX_LENGTH
 )
 
-ROLES = ('user', 'moderator', 'admin', 'superuser')
+ROLES = ('user', 'moderator', 'admin',)
 
 
 class User(AbstractUser):
@@ -22,9 +21,7 @@ class User(AbstractUser):
     confirmation_code = models.CharField(max_length=5)
     bio = models.TextField(max_length=511)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
-
+    # это вроде не нужно же?
     def tokens(self):
         refresh = RefreshToken.for_user(self)
         return (

@@ -2,21 +2,18 @@ import random
 import string
 
 from django.contrib.auth import get_user_model
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMultiAlternatives, send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
-from rest_framework import response, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.permissions import IsAuthorOrReadOnly, UserEmail, CorrectToken
-from api.serializers import ReviewSerializer, EmailValidationSerializer, TokenSerializer, TokenReturn
-from yamdb.models import Review
 import jwt
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import RegistrationSerializer, ReviewSerializer, TokenReturnSerializer, TokenSerializer
 from api_yamdb.settings import SIMPLE_JWT
+from yamdb.models import Review
 
 
 User = get_user_model()
@@ -44,25 +41,24 @@ class ReviewViewSet(viewsets.ModelViewSet):
     #     serializer.save(author=self.request.user)
 
 
-class EmailValidationViewSet(GenericAPIView):
+class RegistrationView(GenericAPIView):
     queryset = User.objects.all()
-    serializer_class = EmailValidationSerializer
-    permission_classes = (UserEmail,)
+    serializer_class = RegistrationSerializer
 
     def perform_create(self, serializer):
         confirmation_code = ''.join(random.choice(string.ascii_letters) for i in range(5))
-
         msg = EmailMultiAlternatives(
-            "Subject here",
+            "Code of api_yamdb",
             confirmation_code,
-            "from@example.com",
+            "from@example.com",  # тут не знаю, от кого
             [get_object_or_404(User, self.request.user).email],
         )
         msg.send()
         serializer.save(confirmation_code=confirmation_code)
 
 
-class TokenViewSet(CreateAPIView):
+# есть подозрение, что нам надо сделать так https://habr.com/ru/articles/793058/
+class TokenView(CreateAPIView):
     serializer_class = TokenSerializer
 
     def post(self, request, *args, **kwargs):
@@ -73,5 +69,10 @@ class TokenViewSet(CreateAPIView):
             key=SIMPLE_JWT['SIGNING_KEY'],
             algorithm=SIMPLE_JWT['ALGORITHM']
         )
-        serializer = TokenReturn(token=token)
+        serializer = TokenReturnSerializer(token=token)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = User
