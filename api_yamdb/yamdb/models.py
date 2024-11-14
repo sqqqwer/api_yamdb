@@ -76,7 +76,7 @@ class Review(models.Model):
         auto_now_add=True,
         db_index=True
     )
-    title = models.ForeignKey(
+    title = models.OneToOneField(
         'Title',
         on_delete=models.CASCADE,
         verbose_name='Произведение'
@@ -112,7 +112,7 @@ class Comment(models.Model):
         auto_now_add=True,
         db_index=True
     )
-    review = models.ForeignKey(
+    review = models.OneToOneField(
         'Review',
         on_delete=models.CASCADE,
         verbose_name='Отзыв'
