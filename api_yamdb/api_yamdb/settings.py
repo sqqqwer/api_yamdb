@@ -95,6 +95,9 @@ SIMPLE_JWT = {
     # Устанавливаем срок жизни токена
     'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'SIGNING_KEY': 'asasdjas',
+    'ALGORITHM': 'HS256'
 }
 
 LANGUAGE_CODE = 'en-us'

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from yamdb.models import (
@@ -85,13 +86,26 @@ class EmailValidationSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email',)
 
-    def validate_username(self, username):
+    def validate_username(self, username, email):
         if username == 'me':
             raise serializers.ValidationError('Who "me"?')
         return username
+
+    def validate(self, attrs): # NB!
+        attrs['']
 
 
 class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'confirmation_code',)
+
+    def validate(self, attrs):
+        if (get_object_or_404(User, username=attrs['username']).confirmation_code
+                != attrs['confirmation_code']):
+            raise serializers.ValidationError('Неправильная пара данных.')
+
+
+class TokenReturn(serializers.ModelSerializer):
+    class Meta:
+        fields = ('token',)

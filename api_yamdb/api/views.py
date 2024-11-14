@@ -7,13 +7,17 @@ from django.core.mail import EmailMultiAlternatives, send_mail
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from rest_framework import response, status, viewsets
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.permissions import IsAuthorOrReadOnly, UserEmail, CorrectToken
-from api.serializers import ReviewSerializer, EmailValidationSerializer, TokenSerializer
+from api.serializers import ReviewSerializer, EmailValidationSerializer, TokenSerializer, TokenReturn
 from yamdb.models import Review
+import jwt
+from api_yamdb.settings import SIMPLE_JWT
+
 
 User = get_user_model()
 
@@ -40,7 +44,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     #     serializer.save(author=self.request.user)
 
 
-class EmailValidationViewSet(viewsets.ModelViewSet):
+class EmailValidationViewSet(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = EmailValidationSerializer
     permission_classes = (UserEmail,)
@@ -58,7 +62,16 @@ class EmailValidationViewSet(viewsets.ModelViewSet):
         serializer.save(confirmation_code=confirmation_code)
 
 
-class TokenViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+class TokenViewSet(CreateAPIView):
     serializer_class = TokenSerializer
-    permission_classes = (CorrectToken,)
+
+    def post(self, request, *args, **kwargs):
+        token = jwt.encode(
+            payload={
+                SIMPLE_JWT['USER_FIELD_ID']: get_object_or_404(User, username=request.data['username']).id
+            },
+            key=SIMPLE_JWT['SIGNING_KEY'],
+            algorithm=SIMPLE_JWT['ALGORITHM']
+        )
+        serializer = TokenReturn(token=token)
+        return Response(serializer.data, status=status.HTTP_200_OK)
