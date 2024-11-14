@@ -5,6 +5,7 @@ from django.core.validators import (
     MaxLengthValidator, MaxValueValidator, MinValueValidator
 )
 from django.db import models
+from django.db.models import Avg
 
 from yamdb.abstracts import AbstractTagModel
 from yamdb.constants import NAME_MAX_LENGTH, STR_OUTPUT_LIMIT
@@ -22,7 +23,6 @@ class Title(models.Model):
             MaxLengthValidator(4)
         )
     )
-    # rating - Определяется на основе отзывов
     description = models.TextField('Описание', null=True, blank=True)
     genres = models.ManyToManyField(
         'Genre',
@@ -42,6 +42,11 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name[:STR_OUTPUT_LIMIT]
+
+    @property
+    def rating(self):
+        rating = self.reviews.aggregate(Avg('score'))['score_avg']
+        return int(rating) if rating else 0
 
 
 class Genre(AbstractTagModel):
