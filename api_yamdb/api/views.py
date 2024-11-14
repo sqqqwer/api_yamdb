@@ -1,8 +1,11 @@
-from rest_framework import viewsets
-from yamdb.models import Title, Review
-from api.serializers import ReviewSerializer, CommentSerializer
-from api.permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, GetTitleSerializer,
+                             PostPatchTitleSerializer, ReviewSerializer)
+from yamdb.models import Category, Genre, Review, Title
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -11,7 +14,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
-    def get_title_obj(self): 
+    def get_title_obj(self):
         title_id = self.kwargs.get('title_id')
         return get_object_or_404(Title, pk=title_id)
 
@@ -30,7 +33,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
-    def get_review_obj(self): 
+    def get_review_obj(self):
         review_id = self.kwargs.get('review_id')
         return get_object_or_404(Review, pk=review_id)
 
@@ -40,9 +43,29 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         review = self.get_review_obj()
-        serializer.save(author=self.request.user, review=review) 
+        serializer.save(author=self.request.user, review=review)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с произведениями."""
-    pass
+    queryset = Title.objects.all()
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action in ('put', 'patch', 'post'):
+            return PostPatchTitleSerializer
+        return GetTitleSerializer
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с категориями."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с жанрами."""
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
