@@ -6,10 +6,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from yamdb.constants import (
     STR_OUTPUT_LIMIT,
     NAME_MAX_LENGTH,
-    SLUG_MAX_LENGTH
+    SLUG_MAX_LENGTH,
+    ROLES
 )
-
-ROLES = ('user', 'moderator', 'admin',)
 
 
 class User(AbstractUser):
