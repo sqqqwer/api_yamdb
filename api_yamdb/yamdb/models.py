@@ -24,7 +24,7 @@ class Title(models.Model):
     )
     # rating - Определяется на основе отзывов
     description = models.TextField('Описание', null=True, blank=True)
-    genres = models.ManyToManyField(
+    genre = models.ManyToManyField(
         'Genre',
         through='TitleGenre',
         verbose_name='Жанр'
@@ -63,7 +63,7 @@ class Review(models.Model):
         'Текст отзыва'
     )
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         verbose_name='Автор отзыва'
     )
@@ -103,7 +103,7 @@ class Comment(models.Model):
         'Текст комментария'
     )
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         verbose_name='Автор комментария'
     )
