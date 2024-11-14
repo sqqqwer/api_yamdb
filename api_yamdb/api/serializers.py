@@ -3,13 +3,10 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
-from yamdb.models import (
-    Category,
-    Genre,
-    Review,
-    Title,
-)
+from yamdb.models import Category, Genre, Review, Title, Comment
+
 
 User = get_user_model()
 
@@ -17,14 +14,21 @@ User = get_user_model()
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с отзывами."""
 
-    # author = serializers.SlugRelatedField(
-    #     'username',
-    #     read_only=True
-    # )
+    author = serializers.SlugRelatedField(
+        'username',
+        read_only=True,
+    )
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('author', 'title'),
+                message='Вы уже оставили отзыв на это произведение.'
+            )
+        ]
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -114,3 +118,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('id',)
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с комментариями."""
+
+    author = serializers.SlugRelatedField(
+        'username',
+        read_only=True,
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date', 'review')
+        model = Comment
+        read_only_fields = ('review',)
