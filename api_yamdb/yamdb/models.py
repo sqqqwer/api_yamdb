@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.validators import (
-    MaxLengthValidator, MaxValueValidator, MinValueValidator
+    MaxValueValidator, MinValueValidator
 )
 from django.db import models
 from django.db.models import Avg
@@ -18,10 +18,7 @@ class Title(models.Model):
     name = models.CharField('Название', max_length=NAME_MAX_LENGTH)
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
-        validators=(
-            MaxValueValidator(datetime.now().year),
-            MaxLengthValidator(4)
-        )
+        validators=(MaxValueValidator(datetime.now().year), )
     )
     description = models.TextField('Описание', null=True, blank=True)
     genre = models.ManyToManyField(

@@ -49,12 +49,12 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с созданием или изменением произведений."""
 
     genre = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         many=True,
         queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         queryset=Category.objects.all()
     )
 
