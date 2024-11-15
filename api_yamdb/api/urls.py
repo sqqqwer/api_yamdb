@@ -27,17 +27,18 @@ router_v1.register(
 router_v1.register('users/', UserViewSet, basename='user')
 
 user_list = [
-    path('me/', UserMeView, basename='me'),
-    path('<slug:username>', UserUsernameView, basename='username')
+    path('me/', UserMeView.as_view(), basename='me'),
+    path('<slug:username>', UserUsernameView.as_view(), basename='username')
 ]
 
 
 auth_list = [
-    path('signup/', RegistrationView, basename='signup'),
-    path('token/', TokenView, basename='token'),
+    path('signup/', RegistrationView.as_view(), basename='signup'),
+    path('token/', TokenView.as_view(), basename='token'),
 ]
 
 urlpatterns = [
+    path('users/', include(user_list)),
     path('auth/', include(auth_list)),
     path('', include('djoser.urls.jwt')),
     path('', include(router_v1.urls)),
