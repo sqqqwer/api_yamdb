@@ -38,7 +38,7 @@ auth_list = [
 ]
 
 urlpatterns = [
-    path('users/', include(user_list)),
+    path('users/', include(user_list)), # а как он будет заходить в роутер с users выше ?
     path('auth/', include(auth_list)),
     path('', include('djoser.urls.jwt')),
     path('', include(router_v1.urls)),

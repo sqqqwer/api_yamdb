@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets, mixins
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -95,6 +96,8 @@ class UserMeView(
     mixins.ListModelMixin,
     mixins.UpdateModelMixin
 ):
+    permission_classes = (IsAuthenticated,)
+
     def get_queryset(self):
         return get_object_or_404(User, username=self.request.user)
 
