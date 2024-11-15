@@ -6,7 +6,6 @@ from django.core.validators import (
     MaxLengthValidator, MaxValueValidator, MinValueValidator
 )
 from django.db import models
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from yamdb.constants import (
     STR_OUTPUT_LIMIT,
@@ -18,6 +17,7 @@ from yamdb.constants import NAME_MAX_LENGTH, STR_OUTPUT_LIMIT
 
 
 class User(AbstractUser):
+    password = models.CharField(blank=True)
     email = models.EmailField(unique=True, blank=False, null=False)
     role = models.CharField(
         max_length=15,
@@ -25,16 +25,6 @@ class User(AbstractUser):
     )
     confirmation_code = models.CharField(max_length=5)
     bio = models.TextField(max_length=511)
-
-    # это вроде не нужно же?
-    def tokens(self):
-        refresh = RefreshToken.for_user(self)
-        return (
-            {
-                'refresh': str(refresh),
-                'refresh': str(refresh.access_token),
-            }
-        )
 
 
 class Title(models.Model):

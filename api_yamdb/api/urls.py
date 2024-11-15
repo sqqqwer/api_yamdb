@@ -1,7 +1,16 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import CommentViewSet, RegistrationView, ReviewViewSet, TitleViewSet, TokenView, UserViewSet
+from api.views import (
+    CommentViewSet,
+    RegistrationView,
+    ReviewViewSet,
+    TitleViewSet,
+    TokenView,
+    UserUsernameView,
+    UserMeView,
+    UserViewSet
+)
 
 router_v1 = DefaultRouter()
 router_v1.register('titles/', TitleViewSet, basename='title')
@@ -16,6 +25,12 @@ router_v1.register(
     basename='comment'
 )
 router_v1.register('users/', UserViewSet, basename='user')
+
+user_list = [
+    path('me/', UserMeView, basename='me'),
+    path('<slug:username>', UserUsernameView, basename='username')
+]
+
 
 auth_list = [
     path('signup/', RegistrationView, basename='signup'),

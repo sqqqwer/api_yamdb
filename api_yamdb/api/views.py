@@ -4,20 +4,27 @@ import string
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
 
-from api.permissions import IsAuthorOrReadOnly
+from api.permissions import IsAuthorOrReadOnly, IsAdmin, IsModerator
 from api_yamdb.settings import SIMPLE_JWT
 from yamdb.models import Review
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, GetTitleSerializer,
-                             PostPatchTitleSerializer, ReviewSerializer,
-                            RegistrationSerializer, TokenReturnSerializer,
-                            TokenSerializer)
+from api.serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    GetTitleSerializer,
+    PostPatchTitleSerializer,
+    ReviewSerializer,
+    RegistrationSerializer,
+    TokenReturnSerializer,
+    TokenSerializer
+)
 from yamdb.models import Category, Genre, Review, Title
 
 
@@ -53,7 +60,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
 
 
-class RegistrationView(GenericAPIView):
+class RegistrationView(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = RegistrationSerializer
 
@@ -69,19 +76,11 @@ class RegistrationView(GenericAPIView):
         serializer.save(confirmation_code=confirmation_code)
 
 
-# есть подозрение, что нам надо сделать так https://habr.com/ru/articles/793058/
 class TokenView(CreateAPIView):
     serializer_class = TokenSerializer
 
     def post(self, request, *args, **kwargs):
-        #
-        token = jwt.encode(
-            payload={
-                SIMPLE_JWT['USER_FIELD_ID']: get_object_or_404(User, username=request.data['username']).id
-            },
-            key=SIMPLE_JWT['SIGNING_KEY'],
-            algorithm=SIMPLE_JWT['ALGORITHM']
-        )
+        token = str(RefreshToken.for_user(self).access_token)
         serializer = TokenReturnSerializer(token=token)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -89,6 +88,26 @@ class TokenView(CreateAPIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = User
+
+
+class UserMeView(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin
+):
+    def get_queryset(self):
+        return get_object_or_404(User, username=self.request.user)
+
+
+class UserUsernameView(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin
+):
+    permission_classes = (IsAdmin,)
+
+    def get_queryset(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -133,4 +152,3 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-
