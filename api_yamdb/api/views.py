@@ -52,7 +52,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_serializer_class(self):
-        print(self.action)
         if self.action in ('update', 'create'):
             return PostPatchTitleSerializer
         return GetTitleSerializer
