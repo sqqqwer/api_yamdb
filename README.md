@@ -9,11 +9,11 @@ API реализация проекта "YAMDB"
 
 ## Как импортировать данные из .csv документов:
 1. Находясь в директории api_yamdb/ cоздайте базу данных.
-'''shell
-    python manage.py migrate
-'''
+```shell
+python manage.py migrate
+```
 2. Запустите импортёр.
-'''shell
-    python manage.py loadfromcsv 'd:/Dev/api_yamdb/api_yamdb/static/data'
-'''
+```shell
+python manage.py loadfromcsv 'd:/Dev/api_yamdb/api_yamdb/static/data'
+```
 ... to be continued
