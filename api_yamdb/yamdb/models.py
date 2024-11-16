@@ -15,12 +15,12 @@ from yamdb.constants import (
 
 
 class User(AbstractUser):
-    password = models.CharField(blank=True, null=True)
+    password = models.CharField(blank=True, null=True, max_length=128)
     email = models.EmailField('Почта', unique=True)
-    role = models.CharField('Роль', choices=ROLES)
-    confirmation_code = models.CharField()
+    role = models.CharField('Роль', choices=ROLES, max_length=10)
+    confirmation_code = models.CharField(max_length=40)
     bio = models.TextField('Биография')
-    
+
     class Meta:
         default_related_name = 'users'
         verbose_name = 'пользователь'

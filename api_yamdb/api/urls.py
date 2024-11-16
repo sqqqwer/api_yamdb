@@ -7,7 +7,8 @@ from api.views import (
     ReviewViewSet,
     TitleViewSet,
     TokenView,
-    UserUsernameView,
+    CategoryViewSet,
+    GenreViewSet,
     UserMeView,
     UserViewSet
 )
@@ -36,7 +37,7 @@ auth_pattern = [
 
 urlpatterns_v1 = [
     path('users/me/', UserMeView.as_view()),
-    path('auth/', include(auth_list)),
+    path('auth/', include(auth_pattern)),
     path('', include(router_v1.urls)),
 ]
 
