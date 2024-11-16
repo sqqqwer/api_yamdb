@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.filters import SearchFilter
 
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CategorySerializer, CommentSerializer,
@@ -50,6 +52,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с произведениями."""
     queryset = Title.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category', 'genre', 'name', 'year')
 
     def get_serializer_class(self):
         if self.action in ('update', 'create'):
@@ -62,6 +66,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -69,3 +75,5 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
