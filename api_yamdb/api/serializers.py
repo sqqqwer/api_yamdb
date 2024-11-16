@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from yamdb.models import Category, Genre, Review, Title, Comment
+from yamdb.models import Category, Comment, Genre, Review, Title
 
 
 User = get_user_model()
@@ -51,12 +51,12 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с созданием или изменением произведений."""
 
     genre = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         many=True,
         queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         queryset=Category.objects.all()
     )
 

@@ -4,17 +4,17 @@ import string
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
 
 from api.permissions import IsAuthorOrReadOnly, IsAdmin, IsModerator
-from api_yamdb.settings import SIMPLE_JWT
-from yamdb.models import Review
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -32,14 +32,48 @@ from yamdb.models import Category, Genre, Review, Title
 User = get_user_model()
 
 
-# временный класс для тестов
-class CommentViewSet(viewsets.ModelViewSet):
-    pass
+class RegistrationView(generics.CreateAPIView):
+    """APIview для создания пользователя."""
+    queryset = User.objects.all()
+    serializer_class = RegistrationSerializer
+
+    def perform_create(self, serializer):
+        confirmation_code = ''.join([random.choice(string.ascii_letters) for _ in range(40)])
+        msg = EmailMultiAlternatives(
+            "Code of api_yamdb",
+            confirmation_code,
+            "from@example.com",  # тут не знаю, от кого
+            [serializer.data['email']],
+        )
+        msg.send()
+        serializer.save(confirmation_code=confirmation_code)
 
 
-# временный класс для тестов
-class TitleViewSet(viewsets.ModelViewSet):
-    pass
+class TokenView(CreateAPIView):
+    """APIview для получения токена."""
+    serializer_class = TokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = get_object_or_404(User, self.request.user)
+        token = str(RefreshToken.for_user(self).access_token)
+        serializer = TokenReturnSerializer(token=token)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserMeView(RetrieveUpdateAPIView):
+    """APIview для получения и редактирования своей учетной записи."""
+    serializer_class = ? # Добавить сериализатор
+
+    def get_queryset(self):
+        return self.request.user
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с пользователями."""
+    queryset = User.objects.all()
+    serializer_class = # Добавить сериализатор
+    permission_classes = (IsAdmin,)
+    lookup_field = 'username'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -59,58 +93,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = self.get_title_obj()
         serializer.save(author=self.request.user, title=title)
-
-
-class RegistrationView(viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = RegistrationSerializer
-
-    def perform_create(self, serializer):
-        confirmation_code = ''.join(random.choice(string.ascii_letters) for i in range(5))
-        msg = EmailMultiAlternatives(
-            "Code of api_yamdb",
-            confirmation_code,
-            "from@example.com",  # тут не знаю, от кого
-            [get_object_or_404(User, self.request.user).email],
-        )
-        msg.send()
-        serializer.save(confirmation_code=confirmation_code)
-
-
-class TokenView(CreateAPIView):
-    serializer_class = TokenSerializer
-
-    def post(self, request, *args, **kwargs):
-        token = str(RefreshToken.for_user(self).access_token)
-        serializer = TokenReturnSerializer(token=token)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = User
-
-
-class UserMeView(
-    viewsets.GenericViewSet,
-    mixins.ListModelMixin,
-    mixins.UpdateModelMixin
-):
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        return get_object_or_404(User, username=self.request.user)
-
-
-class UserUsernameView(
-    viewsets.GenericViewSet,
-    mixins.ListModelMixin,
-    mixins.UpdateModelMixin
-):
-    permission_classes = (IsAdmin,)
-
-    def get_queryset(self):
-        return get_object_or_404(User, username=self.kwargs['username'])
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -136,9 +118,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с произведениями."""
     queryset = Title.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category', 'genre', 'name', 'year')
 
     def get_serializer_class(self):
-        if self.action in ('put', 'patch', 'post'):
+        if self.action in ('update', 'create'):
             return PostPatchTitleSerializer
         return GetTitleSerializer
 
@@ -148,6 +132,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -155,3 +141,5 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)

@@ -2,41 +2,40 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import (
-    MaxLengthValidator, MaxValueValidator, MinValueValidator
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Avg
 
+from yamdb.abstracts import AbstractTagModel
 from yamdb.constants import (
     STR_OUTPUT_LIMIT,
     NAME_MAX_LENGTH,
     ROLES
 )
-from yamdb.abstracts import AbstractTagModel
-from yamdb.constants import NAME_MAX_LENGTH, STR_OUTPUT_LIMIT
 
 
 class User(AbstractUser):
-    password = models.CharField(blank=True)
-    email = models.EmailField(unique=True, blank=False, null=False)
-    role = models.CharField(
-        max_length=15,
-        choices=ROLES
-    )
-    confirmation_code = models.CharField(max_length=5)
-    bio = models.TextField(max_length=511)
+    password = models.CharField(blank=True, null=True)
+    email = models.EmailField('Почта', unique=True)
+    role = models.CharField('Роль', choices=ROLES)
+    confirmation_code = models.CharField()
+    bio = models.TextField('Биография')
+    
+    class Meta:
+        default_related_name = 'users'
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return f'{self.username}-{self.role} - {self.email}'
 
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=NAME_MAX_LENGTH)
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
-        validators=(
-            MaxValueValidator(datetime.now().year),
-            MaxLengthValidator(4)
-        )
+        validators=(MaxValueValidator(datetime.now().year), )
     )
-    # rating - Определяется на основе отзывов
     description = models.TextField('Описание', null=True, blank=True)
     genre = models.ManyToManyField(
         'Genre',
@@ -56,6 +55,11 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name[:STR_OUTPUT_LIMIT]
+
+    @property
+    def rating(self):
+        rating = self.reviews.aggregate(Avg('score'))['score_avg']
+        return int(rating) if rating else 0
 
 
 class Genre(AbstractTagModel):

@@ -12,35 +12,32 @@ from api.views import (
     UserViewSet
 )
 
+
 router_v1 = DefaultRouter()
-router_v1.register('titles/', TitleViewSet, basename='title')
+router_v1.register('titles', TitleViewSet, basename='title')
+router_v1.register('categories', CategoryViewSet, basename='category')
+router_v1.register('genres', GenreViewSet, basename='genre')
 router_v1.register(
-    r'titles/(?P<title_id>\d+)/reviews/',
+    r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
     basename='review'
 )
 router_v1.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments/',
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
     basename='comment'
 )
-router_v1.register('users/', UserViewSet, basename='user')
+router_v1.register('users', UserViewSet, basename='user')
 
-user_list = [
-    path('me/', UserMeView.as_view(), basename='me'),
-    path('<slug:username>', UserUsernameView.as_view(), basename='username')
+auth_pattern = [
+    path('signup/', RegistrationView.as_view(), 'signup'),
+    path('token/', TokenView.as_view(), 'token'),
 ]
 
-
-auth_list = [
-    path('signup/', RegistrationView.as_view(), basename='signup'),
-    path('token/', TokenView.as_view(), basename='token'),
-]
-
-urlpatterns = [
-    path('users/', include(user_list)), # а как он будет заходить в роутер с users выше ?
+urlpatterns_v1 = [
+    path('users/me/', UserMeView.as_view()),
     path('auth/', include(auth_list)),
-    path('', include('djoser.urls.jwt')),
     path('', include(router_v1.urls)),
 ]
-urlpatterns = [path('v1/', include(urlpatterns))]
+
+urlpatterns = [path('v1/', include(urlpatterns_v1))]
