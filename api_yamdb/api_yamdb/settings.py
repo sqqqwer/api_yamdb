@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    # 'djoser',
+    'django_filters',
     'yamdb',
     'api',
 ]
