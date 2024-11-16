@@ -61,7 +61,7 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ('name', 'year', 'rating',
+        fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
 
@@ -118,14 +118,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-        model = User
-
-
-class UpdateSelfUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = ('username', 'email', 'first_name',
-                  'last_name', 'bio')
+        read_only_fields = ('role',)
         model = User
 
 
