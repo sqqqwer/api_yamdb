@@ -31,7 +31,7 @@ router_v1.register(
 router_v1.register('users', UserViewSet, basename='user')
 
 auth_pattern = [
-    path('signup/', RegistrationView, name='signup'),
+    path('signup/', RegistrationView.as_view(), name='signup'),
     path('token/', TokenView, name='token'),
 ]
 

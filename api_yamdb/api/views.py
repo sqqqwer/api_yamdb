@@ -32,7 +32,7 @@ class RegistrationView(CreateAPIView):
         msg = EmailMultiAlternatives(
             "Code of api_yamdb",
             confirmation_code,
-            "from@example.com",
+            None,
             [serializer.data['email']],
         )
         msg.send()
