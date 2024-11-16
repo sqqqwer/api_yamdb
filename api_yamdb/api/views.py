@@ -5,13 +5,14 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
+from rest_framework.permissions import AND, IsAuthenticated
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.permissions import IsAuthorOrReadOnly, IsAdmin, IsModerator
+from api.permissions import IsAuthorOrReadOnly, IsRoleAdmin, IsRoleModerator, IsRoleAdminOrReadOnly
 from api import serializers
 from yamdb.models import Category, Genre, Review, Title
 
@@ -64,7 +65,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsRoleAdmin,)
     lookup_field = 'username'
 
 
@@ -119,19 +120,27 @@ class TitleViewSet(viewsets.ModelViewSet):
         return serializers.GetTitleSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(mixins.DestroyModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      viewsets.GenericViewSet):
     """Вьюсет для работы с категориями."""
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsRoleAdminOrReadOnly,)
+    lookup_field = 'slug'
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   mixins.CreateModelMixin,
+                   viewsets.GenericViewSet):
     """Вьюсет для работы с жанрами."""
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsRoleAdminOrReadOnly,)
+    lookup_field = 'slug'
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
