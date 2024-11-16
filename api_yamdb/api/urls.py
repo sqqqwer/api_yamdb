@@ -31,12 +31,12 @@ router_v1.register(
 router_v1.register('users', UserViewSet, basename='user')
 
 auth_pattern = [
-    path('signup/', RegistrationView.as_view(), 'signup'),
-    path('token/', TokenView.as_view(), 'token'),
+    path('signup/', RegistrationView, name='signup'),
+    path('token/', TokenView, name='token'),
 ]
 
 urlpatterns_v1 = [
-    path('users/me/', UserMeView.as_view()),
+    path('users/me/', UserMeView.as_view(), name='me'),
     path('auth/', include(auth_pattern)),
     path('', include(router_v1.urls)),
 ]

@@ -6,7 +6,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins
-from rest_framework.permissions import AND, IsAuthenticated
+from rest_framework.permissions import AND, IsAuthenticated, AllowAny
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
@@ -24,6 +24,7 @@ class RegistrationView(CreateAPIView):
     """APIview для создания пользователя."""
     queryset = User.objects.all()
     serializer_class = serializers.RegistrationSerializer
+    permission_classes = (AllowAny,)
 
     def perform_create(self, serializer):
         confirmation_code = ''.join([random.choice(string.ascii_letters)
@@ -41,7 +42,21 @@ class RegistrationView(CreateAPIView):
 class TokenView(CreateAPIView):
     """APIview для получения токена."""
     serializer_class = serializers.TokenSerializer
-
+    '''
+    def post(self, request, *args, **kwargs):
+        serializer = serializers.TokenReturnSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            refresh.payload.update({  # Полезная информация в самом токене
+                'user_id': user.id,
+                'username': user.username
+            })
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+    '''
     def post(self, request, *args, **kwargs):
         user = get_object_or_404(User, self.request.user)
         token = str(RefreshToken.for_user(user).access_token)
