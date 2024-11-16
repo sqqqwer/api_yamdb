@@ -29,6 +29,7 @@ class RegistrationView(CreateAPIView):
     def perform_create(self, serializer):
         confirmation_code = ''.join([random.choice(string.ascii_letters)
                                      for _ in range(40)])
+        serializer.save(confirmation_code=confirmation_code)
         msg = EmailMultiAlternatives(
             "Code of api_yamdb",
             confirmation_code,
@@ -36,7 +37,9 @@ class RegistrationView(CreateAPIView):
             [serializer.data['email']],
         )
         msg.send()
-        serializer.save(confirmation_code=confirmation_code)
+
+    def post(self, request, *args, **kwargs):
+        pass
 
 
 class TokenView(CreateAPIView):
