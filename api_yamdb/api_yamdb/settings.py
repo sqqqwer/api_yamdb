@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'django_filters',
     'yamdb',
     'api',
@@ -62,6 +63,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'yamdb.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -90,10 +92,13 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 5,
 }
 
+
 SIMPLE_JWT = {
-    # Устанавливаем срок жизни токена
     'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'SIGNING_KEY': 'asasdjas',
+    'ALGORITHM': 'HS256'
 }
 
 LANGUAGE_CODE = 'en-us'

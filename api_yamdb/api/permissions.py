@@ -1,4 +1,7 @@
+from django.contrib.auth import get_user_model
 from rest_framework import permissions
+
+User = get_user_model()
 
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
@@ -19,3 +22,13 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
             or request.user.admin
             or request.user.moderator
         )
+
+
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == 'admin'
+
+
+class IsModerator(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == 'moderator'

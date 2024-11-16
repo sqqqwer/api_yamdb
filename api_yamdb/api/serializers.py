@@ -1,10 +1,12 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from yamdb.models import Category, Comment, Genre, Review, Title
+
 
 User = get_user_model()
 
@@ -80,6 +82,42 @@ class GetTitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
+
+    def validate_username(self, username):
+        if username == 'me':
+            raise serializers.ValidationError('Who "me"?')
+        return username
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code',)
+
+    def validate(self, attrs):
+        if (get_object_or_404(User, username=attrs['username']).confirmation_code
+                != attrs['confirmation_code']):
+            raise serializers.ValidationError('Неправильная пара данных.')
+        return attrs
+
+
+class TokenReturnSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('token',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        exclude = ('id',)
 
 
 class CommentSerializer(serializers.ModelSerializer):

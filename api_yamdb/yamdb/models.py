@@ -1,14 +1,33 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
 
 from yamdb.abstracts import AbstractTagModel
-from yamdb.constants import NAME_MAX_LENGTH, STR_OUTPUT_LIMIT
+from yamdb.constants import (
+    STR_OUTPUT_LIMIT,
+    NAME_MAX_LENGTH,
+    ROLES
+)
 
-User = get_user_model()
+
+class User(AbstractUser):
+    password = models.CharField(blank=True, null=True)
+    email = models.EmailField('Почта', unique=True)
+    role = models.CharField('Роль', choices=ROLES)
+    confirmation_code = models.CharField()
+    bio = models.TextField('Биография')
+    
+    class Meta:
+        default_related_name = 'users'
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return f'{self.username}-{self.role} - {self.email}'
 
 
 class Title(models.Model):
