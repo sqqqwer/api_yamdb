@@ -6,7 +6,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins
-from rest_framework.permissions import AND, IsAuthenticated
+from rest_framework.permissions import AND, IsAuthenticated, IsAdminUser
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
@@ -51,14 +51,12 @@ class TokenView(CreateAPIView):
 
 class UserMeView(RetrieveUpdateAPIView):
     """APIview для получения и редактирования своей учетной записи."""
+    queryset = User.objects.all()
+    lookup_field = 'username'
+    serializer_class = serializers.UserSerializer
 
-    def get_queryset(self):
+    def get_object(self):
         return self.request.user
-
-    def get_serializer_class(self):
-        if self.action in ('update'):
-            return serializers.UpdateSelfUserSerializer
-        return serializers.UserSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -66,7 +64,10 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = (IsRoleAdmin,)
+    filter_backends = (SearchFilter,)
     lookup_field = 'username'
+    search_fields = ('username',)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -110,12 +111,13 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с произведениями."""
     queryset = Title.objects.all()
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsRoleAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category', 'genre', 'name', 'year')
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
-        if self.action in ('update', 'create'):
+        if self.action in ('partial_update', 'create'):
             return serializers.PostPatchTitleSerializer
         return serializers.GetTitleSerializer
 
