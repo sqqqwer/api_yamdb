@@ -2,15 +2,15 @@ import random
 import string
 
 from django.contrib.auth import get_user_model
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins
-from rest_framework.permissions import AND, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AND, IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from api.permissions import IsAuthorOrReadOnly, IsRoleAdmin, IsRoleModerator, IsRoleAdminOrReadOnly
 from api import serializers
@@ -24,29 +24,59 @@ class RegistrationView(CreateAPIView):
     """APIview для создания пользователя."""
     queryset = User.objects.all()
     serializer_class = serializers.RegistrationSerializer
+    permission_classes = (AllowAny,)
+
+    def _get_confirmation_code_and_send_email(self, email):
+        confirmation_code = ''.join([random.choice(string.ascii_letters)
+                                    for _ in range(40)])
+        send_mail(
+            subject='Code of api_yamdb',
+            message=confirmation_code,
+            from_email='from@example.com',
+            recipient_list=[email],
+        )
+        return confirmation_code
 
     def perform_create(self, serializer):
-        confirmation_code = ''.join([random.choice(string.ascii_letters)
-                                     for _ in range(40)])
-        msg = EmailMultiAlternatives(
-            "Code of api_yamdb",
-            confirmation_code,
-            "from@example.com",
-            [serializer.data['email']],
+        confirmation_code = self._get_confirmation_code_and_send_email(
+            serializer.validated_data['email']
         )
-        msg.send()
+
         serializer.save(confirmation_code=confirmation_code)
+
+    def create(self, request, *args, **kwargs):
+        serializer = super().get_serializer(data=request.data)
+        user = User.objects.filter(
+            username=self.request.data.get('username', '')).first()
+        if user:
+            serializer.validate_exist_user_email(serializer.initial_data)
+            user.confirmation_code = (
+                self._get_confirmation_code_and_send_email(user.email)
+            )
+            user.save()
+            headers = super().get_success_headers(serializer.initial_data)
+            return Response(serializer.initial_data, status=status.HTTP_200_OK,
+                            headers=headers)
+        else:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = super().get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK,
+                            headers=headers)
 
 
 class TokenView(CreateAPIView):
     """APIview для получения токена."""
     serializer_class = serializers.TokenSerializer
+    permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        user = get_object_or_404(User, self.request.user)
-        token = str(RefreshToken.for_user(user).access_token)
-        serializer = serializers.TokenReturnSerializer(token=token)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = super().get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User, username=serializer.validated_data['username'])
+        token = str(AccessToken.for_user(user))
+        return Response({'token': token}, status=status.HTTP_200_OK)
 
 
 class UserMeView(RetrieveUpdateAPIView):
