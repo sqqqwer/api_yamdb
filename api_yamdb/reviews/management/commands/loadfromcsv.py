@@ -1,11 +1,11 @@
 import csv
 import glob
 
-from django.db.utils import IntegrityError
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
+from django.db.utils import IntegrityError
 
-from yamdb.models import Category, Genre, Review, Title, Comment, TitleGenre
+from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
 
 User = get_user_model()
 

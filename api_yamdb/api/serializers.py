@@ -1,14 +1,12 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-
-from reviews.models import Review, Title, Category, Genre, Comment
-from yamdb.constants import ROLES
-
-from django.core.validators import MinValueValidator, MaxValueValidator
+from reviews.constants import ROLES
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 

@@ -1,10 +1,7 @@
 from django.db import models
 
-from yamdb.constants import (
-    STR_OUTPUT_LIMIT,
-    NAME_MAX_LENGTH,
-    SLUG_MAX_LENGTH
-)
+from reviews.constants import (NAME_MAX_LENGTH, SLUG_MAX_LENGTH,
+                               STR_OUTPUT_LIMIT)
 
 
 class AbstractTagModel(models.Model):

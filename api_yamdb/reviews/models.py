@@ -1,17 +1,12 @@
-from yamdb.constants import (
-    STR_OUTPUT_LIMIT,
-    NAME_MAX_LENGTH,
-    ROLES
-)
-from django.db import models
 from datetime import datetime
 
-
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
-from django.contrib.auth.models import AbstractUser
-from yamdb.abstracts import AbstractTagModel
+
+from reviews.abstracts import AbstractTagModel
+from reviews.constants import NAME_MAX_LENGTH, ROLES, STR_OUTPUT_LIMIT
 
 
 class User(AbstractUser):
@@ -71,7 +66,7 @@ class Review(models.Model):
         max_length=255
     )
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         verbose_name='Автор отзыва'
     )
@@ -92,6 +87,9 @@ class Review(models.Model):
 
     class Meta:
         default_related_name = 'reviews'
+        verbose_name = 'отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ('-pub_date',)
         constraints = [
             models.UniqueConstraint(fields=['title', 'author'],
                                     name='unique_review'
@@ -121,8 +119,7 @@ class Category(AbstractTagModel):
 
 
 class TitleGenre(models.Model):
-    title = models.ForeignKey(
-        'Title', null=True, on_delete=models.SET_NULL)
+    title = models.ForeignKey('Title', null=True, on_delete=models.SET_NULL)
     genre = models.ForeignKey('Genre', null=True, on_delete=models.SET_NULL)
 
 
@@ -131,7 +128,7 @@ class Comment(models.Model):
         'Текст комментария'
     )
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         verbose_name='Автор комментария'
     )
@@ -147,7 +144,10 @@ class Comment(models.Model):
     )
 
     class Meta:
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return (
