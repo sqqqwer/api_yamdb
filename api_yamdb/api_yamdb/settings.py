@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django_filters',
     'yamdb',
     'api',
+    'reviews'
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,8 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'yamdb.User'
+# AUTH_USER_MODEL = 'yamdb.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

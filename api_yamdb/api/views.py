@@ -15,9 +15,12 @@ from rest_framework_simplejwt.tokens import AccessToken
 from api import serializers
 from api.filters import TitleFilter
 from api.mixins import MixinTagViewSet
-from api.permissions import (IsAuthorOrReadOnly, IsRoleAdmin,
-                             IsRoleAdminOrReadOnly)
-from yamdb.models import Category, Genre, Review, Title
+from api.permissions import (
+    IsAuthorOrReadOnly, IsRoleAdmin, IsRoleAdminOrReadOnly)
+
+from reviews.models import Review, Title, Category, Genre
+from rest_framework.exceptions import ValidationError
+
 
 User = get_user_model()
 
@@ -105,12 +108,13 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с отзывами."""
 
-    serializer_class = serializers.ReviewSerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_title_obj(self):
         title_id = self.kwargs.get('title_id')
-        return get_object_or_404(Title, pk=title_id)
+        title = get_object_or_404(Title, pk=title_id)
+        return title
 
     def get_queryset(self):
         title = self.get_title_obj()
@@ -118,7 +122,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = self.get_title_obj()
+
+        if Review.objects.filter(author=self.request.user,
+                                 title=title).exists():
+            raise ValidationError('Вы уже оставили отзыв на это произведение.')
+
         serializer.save(author=self.request.user, title=title)
+
+    def get_serializer_class(self):
+        if self.action in ('partial_update', 'create'):
+            return serializers.PostPatchReviewSerializer
+        return serializers.GetReviewSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -126,6 +140,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = serializers.CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review_obj(self):
         review_id = self.kwargs.get('review_id')

@@ -3,32 +3,44 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
-from yamdb.models import Category, Comment, Genre, Review, Title
+
+from reviews.models import Review, Title, Category, Genre, Comment
 from yamdb.constants import ROLES
+
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с отзывами."""
+class PostPatchReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с созданием или изменением отзывов."""
 
     author = serializers.SlugRelatedField(
-        'username',
+        slug_field='username',
+        read_only=True,
+    )
+    score = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    text = serializers.CharField()
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        model = Review
+        read_only_fields = ('title',)
+
+
+class GetReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для получения отзывов."""
+    author = serializers.SlugRelatedField(
+        slug_field='username',
         read_only=True,
     )
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title'),
-                message='Вы уже оставили отзыв на это произведение.'
-            )
-        ]
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -77,6 +89,7 @@ class GetTitleSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
+    rating = serializers.ReadOnlyField()
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating',
