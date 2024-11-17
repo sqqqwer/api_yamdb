@@ -5,17 +5,19 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets, mixins
-from rest_framework.permissions import AND, IsAuthenticated, IsAdminUser, AllowAny
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
-from rest_framework.response import Response
+from rest_framework import status, viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api.permissions import IsAuthorOrReadOnly, IsRoleAdmin, IsRoleModerator, IsRoleAdminOrReadOnly
 from api import serializers
+from api.filters import TitleFilter
+from api.mixins import MixinTagViewSet
+from api.permissions import (IsAuthorOrReadOnly, IsRoleAdmin,
+                             IsRoleAdminOrReadOnly)
 from yamdb.models import Category, Genre, Review, Title
-
 
 User = get_user_model()
 
@@ -83,7 +85,7 @@ class UserMeView(RetrieveUpdateAPIView):
     """APIview для получения и редактирования своей учетной записи."""
     queryset = User.objects.all()
     lookup_field = 'username'
-    serializer_class = serializers.UserSerializer
+    serializer_class = serializers.UserMeSerializer
 
     def get_object(self):
         return self.request.user
@@ -93,7 +95,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (IsRoleAdmin,)
+    permission_classes = (IsRoleAdmin | IsAdminUser,)
     filter_backends = (SearchFilter,)
     lookup_field = 'username'
     search_fields = ('username',)
@@ -143,7 +145,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsRoleAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
@@ -152,27 +154,13 @@ class TitleViewSet(viewsets.ModelViewSet):
         return serializers.GetTitleSerializer
 
 
-class CategoryViewSet(mixins.DestroyModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(MixinTagViewSet):
     """Вьюсет для работы с категориями."""
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
-    permission_classes = (IsRoleAdminOrReadOnly,)
-    lookup_field = 'slug'
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
 
 
-class GenreViewSet(mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   viewsets.GenericViewSet):
+class GenreViewSet(MixinTagViewSet):
     """Вьюсет для работы с жанрами."""
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
-    permission_classes = (IsRoleAdminOrReadOnly,)
-    lookup_field = 'slug'
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
