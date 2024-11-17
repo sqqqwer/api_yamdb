@@ -92,8 +92,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def validate_username(self, username):
         if username == 'me':
-            raise serializers.ValidationError('Who "me"?')
+            raise serializers.ValidationError('Некорректное имя пользователя.')
         return username
+
+    def validate_exist_user_email(self, attrs):
+        user = User.objects.filter(
+            username=attrs['username']).first()
+        if user and user.email != attrs['email']:
+            raise serializers.ValidationError('Некорректная почта.')
+        return attrs
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -104,13 +111,8 @@ class TokenSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = get_object_or_404(User, username=attrs['username'])
         if user.confirmation_code != attrs['confirmation_code']:
-            raise serializers.ValidationError('Неправильная пара данных.')
+            raise serializers.ValidationError('Неверный код подтверждения.')
         return attrs
-
-
-class TokenReturnSerializer(serializers.Serializer):
-    class Meta:
-        fields = ('token',)
 
 
 class UserSerializer(serializers.ModelSerializer):
