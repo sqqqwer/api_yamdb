@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -16,7 +15,7 @@ from yamdb.constants import (
 
 class User(AbstractUser):
     password = models.CharField(blank=True, null=True, max_length=128)
-    email = models.EmailField('Почта', unique=True)
+    email = models.EmailField('Почта', unique=True, max_length=254)
     role = models.CharField('Роль', choices=ROLES,
                             max_length=10, default='user')
     confirmation_code = models.CharField(max_length=40)
@@ -53,6 +52,8 @@ class Title(models.Model):
         default_related_name = 'titles'
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
+
+        ordering = ('-year',)
 
     def __str__(self):
         return self.name[:STR_OUTPUT_LIMIT]

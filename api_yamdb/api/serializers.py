@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from yamdb.models import Category, Comment, Genre, Review, Title
-
+from yamdb.constants import ROLES
 
 User = get_user_model()
 
@@ -103,10 +103,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class TokenSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('username', 'confirmation_code',)
-        model = User
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.CharField()
 
     def validate(self, attrs):
         user = get_object_or_404(User, username=attrs['username'])
@@ -116,11 +115,20 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    role = serializers.ChoiceField(choices=ROLES, default='user')
 
     class Meta:
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-        read_only_fields = ('role',)
+        model = User
+
+
+class UserMeSerializer(UserSerializer):
+    role = serializers.ChoiceField(choices=ROLES, read_only=True)
+
+    class Meta:
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role',)
         model = User
 
 
