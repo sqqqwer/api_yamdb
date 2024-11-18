@@ -14,7 +14,7 @@ class User(AbstractUser):
     email = models.EmailField('Почта', unique=True, max_length=254)
     role = models.CharField('Роль', choices=ROLES,
                             max_length=10, default='user')
-    confirmation_code = models.CharField(max_length=40)
+    confirmation_code = models.CharField(max_length=40) # потом удалить и применить миграции
     bio = models.TextField('Биография', blank=True, null=True)
 
     class Meta:

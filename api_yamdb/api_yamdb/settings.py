@@ -117,3 +117,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+FROM_EMAIL = 'from@example.com'
