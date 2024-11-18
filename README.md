@@ -10,7 +10,7 @@ API реализация проекта "YAMDB"
 - [6. Регистрация и авторизация](#6-регистрация-и-авторизация-пользователей)
 - [7. Импорт данных из .csv документов](#7-импорт-данных-из-csv-документов)
 - [8. Примеры запросов](#8-примеры-запросов)
-- [9. Авторы](#)
+- [9. Авторы](#9-авторы)
 
 ## 1. Кратко о сервисе
 Сервис предоставляет возможность авторизованным пользователям оставлять отзывы на произведения и комментировать отзывы других пользователей.
@@ -41,32 +41,35 @@ git clone git@github.com:sqqqwer/api_yamdb.git
 ```
 - Перейдите в проект
 ```
-cd kittygram_plus
+cd api_yamdb/
 ```
-Cоздайте и активировируйте виртуальное окружение:
+- Cоздайте и активировируйте виртуальное окружение:
 ```
-python3 -m venv env
+python -m venv venv
 ```
+Если Linux:
 ```
-source env/bin/activate
+. venv/bin/activate
+```
+Если Windows:
+```
+. venv/Scripts/activate
 ```
 - Обновите pip
 ```
-python3 -m pip install --upgrade pip
+python -m pip install --upgrade pip
 ```
-Установите зависимости из файла requirements.txt:
+- Установите зависимости из файла requirements.txt:
 ```
 pip install -r requirements.txt
 ```
-
-Выполните миграции:
+- Выполните миграции:
 ```
-python3 manage.py migrate
+python manage.py migrate
 ```
-
-Запустите проект:
+- Запустите проект:
 ```
-python3 manage.py runserver
+python manage.py runserver
 ```
 
 ## 6. Регистрация и авторизация пользователей
@@ -141,7 +144,7 @@ DELETE http://127.0.0.1:8000/api/v1/users/regular_user/
 }
 ```
 
-## 9.Авторы
+## 9. Авторы
 - _Борисов Василий_
 - _Чернявский Владислав_
 - _Ермаков Виталий_
