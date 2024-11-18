@@ -32,9 +32,6 @@ class User(AbstractUser):
     role = models.CharField('Роль', choices=ROLES,
                             max_length=max_role_length,
                             default=DEFAULT_ROLE)
-    confirmation_code = models.CharField(
-        max_length=CONFIRMATION_CODE_MAX_LENGTH
-    )
     bio = models.TextField('Биография', blank=True, null=True)
 
     class Meta:
