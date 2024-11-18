@@ -1,21 +1,15 @@
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
 
-from reviews.abstracts import AbstractTagModel, AbstractCommentReviewModel
-from reviews.constants import (
-    NAME_MAX_LENGTH,
-    ROLES,
-    STR_OUTPUT_LIMIT,
-    FIELD_MAX_LENGTH,
-    CONFIRMATION_CODE_MAX_LENGTH,
-    DEFAULT_ROLE,
-    ROLE_INDEX
-)
+from reviews.abstracts import AbstractCommentReviewModel, AbstractTagModel
+from reviews.constants import (CONFIRMATION_CODE_MAX_LENGTH, DEFAULT_ROLE,
+                               FIELD_MAX_LENGTH, NAME_MAX_LENGTH, ROLE_INDEX,
+                               ROLES, STR_OUTPUT_LIMIT)
 
 
 def validate_year(value):
