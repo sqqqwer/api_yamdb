@@ -1,46 +1,77 @@
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
 
-from reviews.abstracts import AbstractTagModel
-from reviews.constants import NAME_MAX_LENGTH, ROLES, STR_OUTPUT_LIMIT
+from reviews.abstracts import AbstractCommentReviewModel, AbstractTagModel
+from reviews.constants import (CONFIRMATION_CODE_MAX_LENGTH, DEFAULT_ROLE,
+                               FIELD_MAX_LENGTH, NAME_MAX_LENGTH, ROLE_INDEX,
+                               ROLES, STR_OUTPUT_LIMIT)
+
+
+def validate_year(value):
+    current_year = datetime.now().year
+    if value > current_year:
+        raise ValidationError(
+            f'Год выпуска (издания) не может быть больше текущего: '
+            f'{current_year}'
+        )
 
 
 class User(AbstractUser):
-    password = models.CharField(blank=True, null=True, max_length=128)
-    email = models.EmailField('Почта', unique=True, max_length=254)
+    max_role_length = max(len(role[ROLE_INDEX]) for role in ROLES)
+    password = models.CharField(blank=True,
+                                null=True,
+                                max_length=FIELD_MAX_LENGTH)
+    email = models.EmailField('Почта',
+                              unique=True,
+                              max_length=FIELD_MAX_LENGTH)
     role = models.CharField('Роль', choices=ROLES,
-                            max_length=10, default='user')
-    confirmation_code = models.CharField(max_length=40) # потом удалить и применить миграции
+                            max_length=max_role_length,
+                            default=DEFAULT_ROLE)
     bio = models.TextField('Биография', blank=True, null=True)
 
     class Meta:
-        default_related_name = 'users'
         verbose_name = 'пользователь'
         verbose_name_plural = 'Пользователи'
+        ordering = ('username',)
 
     def __str__(self):
         return f'{self.username}-{self.role} - {self.email}'
 
 
+class Genre(AbstractTagModel):
+
+    class Meta(AbstractTagModel.Meta):
+        verbose_name = 'жанр'
+        verbose_name_plural = 'Жанры'
+
+
+class Category(AbstractTagModel):
+
+    class Meta(AbstractTagModel.Meta):
+        verbose_name = 'категория'
+        verbose_name_plural = 'Категории'
+
+
 class Title(models.Model):
     name = models.CharField('Название', max_length=NAME_MAX_LENGTH)
-    year = models.PositiveSmallIntegerField(
+    year = models.SmallIntegerField(
         'Год выпуска',
-        validators=(MaxValueValidator(datetime.now().year), )
+        validators=(validate_year,)
     )
     description = models.TextField('Описание', null=True, blank=True)
     genre = models.ManyToManyField(
-        'Genre',
+        Genre,
         through='TitleGenre',
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
-        'Category',
-        null=True, blank=False, on_delete=models.SET_NULL,
+        Category,
+        null=True, on_delete=models.SET_NULL,
         verbose_name='Категория'
     )
 
@@ -48,7 +79,6 @@ class Title(models.Model):
         default_related_name = 'titles'
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
-
         ordering = ('-year',)
 
     def __str__(self):
@@ -60,36 +90,24 @@ class Title(models.Model):
         return int(rating) if rating else None
 
 
-class Review(models.Model):
-    text = models.CharField(
+class Review(AbstractCommentReviewModel):
+    text = models.TextField(
         'Текст отзыва',
-        max_length=255
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Автор отзыва'
     )
     score = models.IntegerField(
         'Оценка пользователя',
         validators=[MinValueValidator(1), MaxValueValidator(10),]
     )
-    pub_date = models.DateTimeField(
-        'Дата добавления отзыва',
-        auto_now_add=True,
-        db_index=True
-    )
     title = models.ForeignKey(
-        'Title',
+        Title,
         on_delete=models.CASCADE,
         verbose_name='Произведение'
     )
 
-    class Meta:
+    class Meta(AbstractCommentReviewModel.Meta):
         default_related_name = 'reviews'
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
-        ordering = ('-pub_date',)
         constraints = [
             models.UniqueConstraint(fields=['title', 'author'],
                                     name='unique_review'
@@ -104,50 +122,28 @@ class Review(models.Model):
         )
 
 
-class Genre(AbstractTagModel):
-
-    class Meta:
-        verbose_name = 'жанр'
-        verbose_name_plural = 'Жанры'
-
-
-class Category(AbstractTagModel):
-
-    class Meta:
-        verbose_name = 'категория'
-        verbose_name_plural = 'Категории'
-
-
 class TitleGenre(models.Model):
-    title = models.ForeignKey('Title', null=True, on_delete=models.SET_NULL)
-    genre = models.ForeignKey('Genre', null=True, on_delete=models.SET_NULL)
+    title = models.ForeignKey(Title, null=True, on_delete=models.SET_NULL)
+    genre = models.ForeignKey(Genre, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ('title',)
 
 
-class Comment(models.Model):
+class Comment(AbstractCommentReviewModel):
     text = models.TextField(
         'Текст комментария'
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Автор комментария'
-    )
-    pub_date = models.DateTimeField(
-        'Дата добавления комментария',
-        auto_now_add=True,
-        db_index=True
-    )
     review = models.ForeignKey(
-        'Review',
+        Review,
         on_delete=models.CASCADE,
         verbose_name='Отзыв'
     )
 
-    class Meta:
+    class Meta(AbstractCommentReviewModel.Meta):
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
-        ordering = ('-pub_date',)
 
     def __str__(self):
         return (
