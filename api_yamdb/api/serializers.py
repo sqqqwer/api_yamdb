@@ -9,7 +9,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from api_yamdb.settings import FROM_EMAIL
-from reviews.constants import ROLES
+from reviews.constants import (BAN_USERNAME, DEFAULT_TITLE_RATING,
+                               EMAIL_MAX_LENGTH, MAX_SCORE_VALUE,
+                               MIN_SCORE_VALUE, ROLES, USERNAME_MAX_LENGTH)
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
@@ -23,7 +25,8 @@ class PostPatchReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     score = serializers.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=[MinValueValidator(MIN_SCORE_VALUE),
+                    MaxValueValidator(MAX_SCORE_VALUE)]
     )
     text = serializers.CharField()
 
@@ -72,6 +75,20 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
+class GetTitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы получения данных о произведении."""
+
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
+    rating = serializers.IntegerField(
+        read_only=True, default=DEFAULT_TITLE_RATING)
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
+        model = Title
+
+
 class PostPatchTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с созданием или изменением произведений."""
 
@@ -98,32 +115,23 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
                 'Год выпуска не может быть больше текущего')
         return value
 
-
-class GetTitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы получения данных о произведении."""
-
-    genre = GenreSerializer(read_only=True, many=True)
-    category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(read_only=True, default=0)
-
-    class Meta:
-        fields = ('id', 'name', 'year', 'rating',
-                  'description', 'genre', 'category')
-        model = Title
+    def to_representation(self, instance):
+        response = GetTitleSerializer().to_representation(instance)
+        return response
 
 
 class RegistrationSerializer(serializers.Serializer):
     """Сериализатор для регистрации."""
 
-    username = serializers.CharField(max_length=150,
+    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH,
                                      validators=[UnicodeUsernameValidator()])
-    email = serializers.EmailField(max_length=254, )
+    email = serializers.EmailField(max_length=EMAIL_MAX_LENGTH)
 
     class Meta:
         fields = ('username', 'email',)
 
     def validate_username(self, username):
-        if username == 'me':
+        if username == BAN_USERNAME:
             raise serializers.ValidationError('Некорректное имя пользователя.')
         return username
 
@@ -155,7 +163,7 @@ class RegistrationSerializer(serializers.Serializer):
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для работы с токеном."""
 
-    username = serializers.CharField(max_length=150,
+    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH,
                                      validators=[UnicodeUsernameValidator()])
     confirmation_code = serializers.CharField()
 

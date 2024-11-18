@@ -7,9 +7,10 @@ from django.db import models
 from django.db.models import Avg
 
 from reviews.abstracts import AbstractCommentReviewModel, AbstractTagModel
-from reviews.constants import (CONFIRMATION_CODE_MAX_LENGTH, DEFAULT_ROLE,
-                               FIELD_MAX_LENGTH, NAME_MAX_LENGTH, ROLE_INDEX,
-                               ROLES, STR_OUTPUT_LIMIT)
+from reviews.constants import (DEFAULT_ROLE, EMAIL_MAX_LENGTH, MAX_SCORE_VALUE,
+                               MIN_SCORE_VALUE, NAME_MAX_LENGTH,
+                               PASSWORD_MAX_LENGTH, ROLE_ADMIN, ROLE_INDEX,
+                               ROLE_MODERATOR, ROLES, STR_OUTPUT_LIMIT)
 
 
 def validate_year(value):
@@ -25,10 +26,10 @@ class User(AbstractUser):
     max_role_length = max(len(role[ROLE_INDEX]) for role in ROLES)
     password = models.CharField(blank=True,
                                 null=True,
-                                max_length=FIELD_MAX_LENGTH)
+                                max_length=PASSWORD_MAX_LENGTH)
     email = models.EmailField('Почта',
                               unique=True,
-                              max_length=FIELD_MAX_LENGTH)
+                              max_length=EMAIL_MAX_LENGTH)
     role = models.CharField('Роль', choices=ROLES,
                             max_length=max_role_length,
                             default=DEFAULT_ROLE)
@@ -41,6 +42,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.username}-{self.role} - {self.email}'
+
+    @property
+    def is_admin(self):
+        return self.role == ROLE_ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == ROLE_MODERATOR
 
 
 class Genre(AbstractTagModel):
@@ -96,7 +105,8 @@ class Review(AbstractCommentReviewModel):
     )
     score = models.IntegerField(
         'Оценка пользователя',
-        validators=[MinValueValidator(1), MaxValueValidator(10),]
+        validators=[MinValueValidator(MIN_SCORE_VALUE),
+                    MaxValueValidator(MAX_SCORE_VALUE),]
     )
     title = models.ForeignKey(
         Title,
