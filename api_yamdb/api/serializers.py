@@ -71,7 +71,7 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ('id', 'name', 'year', 'rating',
+        fields = ('id', 'name', 'year',
                   'description', 'genre', 'category')
         model = Title
 
@@ -87,7 +87,7 @@ class GetTitleSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.ReadOnlyField()
+    rating = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating',

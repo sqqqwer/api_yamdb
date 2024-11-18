@@ -3,6 +3,7 @@ import string
 
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -155,7 +156,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с произведениями."""
-    queryset = Title.objects.all()
+
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('-year')
     permission_classes = (IsRoleAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
