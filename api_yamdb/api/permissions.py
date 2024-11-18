@@ -4,16 +4,11 @@ from rest_framework import permissions
 User = get_user_model()
 
 
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    """Пермишн, который дает доступ на редактрование только авторам,
-    админам, модераторам. А безопасные методы пропускает.
-    """
-
-    def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_authenticated
-        )
+class IsAuthorOrStaff(permissions.BasePermission):
+    (
+        """Пермишн, который дает доступ на редактрование только авторам, """
+        """админам, модераторам. А безопасные методы пропускает.
+""")
 
     def has_object_permission(self, request, view, obj):
         return (

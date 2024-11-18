@@ -1,10 +1,14 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
+from api_yamdb.settings import FROM_EMAIL
 from reviews.constants import ROLES
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -26,18 +30,29 @@ class PostPatchReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
-        read_only_fields = ('title',)
+
+    def validate(self, attrs):
+        if self.context['request'].method == 'POST':
+            if Review.objects.filter(
+                author=self.context['request'].user,
+                title_id=self.context.get('view').kwargs.get('title_id')
+            ).exists():
+                raise serializers.ValidationError(
+                    'Вы уже оставили отзыв на это произведение.')
+
+        return attrs
 
 
 class GetReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для получения отзывов."""
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
     )
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
 
 
@@ -63,12 +78,14 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         many=True,
+        allow_empty=False,
         queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
     )
+    year = serializers.IntegerField()
 
     class Meta:
         fields = ('id', 'name', 'year',
@@ -95,37 +112,65 @@ class GetTitleSerializer(serializers.ModelSerializer):
         model = Title
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.Serializer):
+    """Сериализатор для регистрации."""
+
+    username = serializers.CharField(max_length=150,
+                                     validators=[UnicodeUsernameValidator()])
+    email = serializers.EmailField(max_length=254, )
 
     class Meta:
         fields = ('username', 'email',)
-        model = User
 
     def validate_username(self, username):
         if username == 'me':
             raise serializers.ValidationError('Некорректное имя пользователя.')
         return username
 
-    def validate_exist_user_email(self, attrs):
-        user = User.objects.filter(
+    def validate(self, attrs):
+        print(attrs['username'])
+        user_with_username = User.objects.filter(
             username=attrs['username']).first()
-        if user and user.email != attrs['email']:
+        if user_with_username and user_with_username.email != attrs['email']:
             raise serializers.ValidationError('Некорректная почта.')
+
+        user_with_email = User.objects.filter(
+            email=attrs['email']).first()
+        if user_with_email and not user_with_username:
+            raise serializers.ValidationError('Почта занята.')
         return attrs
+
+    def create(self, validated_data):
+        user, is_created = User.objects.get_or_create(**validated_data)
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Code of api_yamdb',
+            message=confirmation_code,
+            from_email=FROM_EMAIL,
+            recipient_list=[user.email],
+        )
+        return user
 
 
 class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
+    """Сериализатор для работы с токеном."""
+
+    username = serializers.CharField(max_length=150,
+                                     validators=[UnicodeUsernameValidator()])
     confirmation_code = serializers.CharField()
 
     def validate(self, attrs):
         user = get_object_or_404(User, username=attrs['username'])
-        if user.confirmation_code != attrs['confirmation_code']:
+        if not default_token_generator.check_token(
+            user, attrs['confirmation_code']
+        ):
             raise serializers.ValidationError('Неверный код подтверждения.')
         return attrs
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с пользователями."""
+
     role = serializers.ChoiceField(choices=ROLES, default='user')
 
     class Meta:
@@ -135,6 +180,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(UserSerializer):
+    """Сериализатор для получения и редактирования своей учетной записи."""
+
     role = serializers.ChoiceField(choices=ROLES, read_only=True)
 
     class Meta:
@@ -152,6 +199,5 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ('id', 'text', 'author', 'pub_date', 'review')
+        fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('review',)
