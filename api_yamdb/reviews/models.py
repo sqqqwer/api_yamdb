@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg
 
 from reviews.abstracts import AbstractCommentReviewModel, AbstractTagModel
 from reviews.constants import (CONFIRMATION_CODE_MAX_LENGTH, DEFAULT_ROLE,
@@ -83,11 +82,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name[:STR_OUTPUT_LIMIT]
-
-    @property
-    def rating(self):
-        rating = self.reviews.aggregate(Avg('score'))['score__avg']
-        return int(rating) if rating else None
 
 
 class Review(AbstractCommentReviewModel):

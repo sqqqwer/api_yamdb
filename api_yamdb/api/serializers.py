@@ -88,7 +88,7 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
     year = serializers.IntegerField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'rating',
+        fields = ('id', 'name', 'year',
                   'description', 'genre', 'category')
         model = Title
 
