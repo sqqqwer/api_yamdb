@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from reviews.models import (
     Category,
     Comment,
@@ -7,6 +8,8 @@ from reviews.models import (
     Title,
     User
 )
+
+from reviews.constants import ADD_USER_FIELDS, EDIT_USER_FIELDS
 
 
 class TagMixin:
@@ -28,7 +31,7 @@ class GenreAdmin(TagMixin, admin.ModelAdmin):
 
 
 @admin.register(Category)
-class GenreAdmin(TagMixin, admin.ModelAdmin):
+class CategoryAdmin(TagMixin, admin.ModelAdmin):
     pass
 
 
@@ -79,42 +82,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display_links = ('author',)
 
 
-@admin.register(User)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = (
-        'username',
-        'first_name',
-        'last_name',
-        'email',
-        'role',
-        'bio',
-        'is_staff',
-        'is_active',
-        'date_joined'
-    )
-    list_editable = (
-        'email',
-        'bio',
-        'role',
-        'first_name',
-        'last_name',
-        'is_staff',
-        'is_active',
-    )
-    search_fields = (
-        'username',
-        'first_name',
-        'last_name',
-        'email',
-        'role',
-        'bio',
-        'is_staff',
-        'is_active',
-        'date_joined'
-    )
-    list_filter = (
-        'role',
-        'is_staff',
-        'is_active',
-    )
-    list_display_links = ('username',)
+class MyUserAdmin(BaseUserAdmin):
+    model = User
+    fieldsets = BaseUserAdmin.fieldsets + ADD_USER_FIELDS
+    add_fieldsets = BaseUserAdmin.add_fieldsets + EDIT_USER_FIELDS

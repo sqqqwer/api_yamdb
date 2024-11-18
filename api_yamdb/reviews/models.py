@@ -9,7 +9,7 @@ from reviews.abstracts import AbstractCommentReviewModel, AbstractTagModel
 from reviews.constants import (DEFAULT_ROLE, EMAIL_MAX_LENGTH, MAX_SCORE_VALUE,
                                MIN_SCORE_VALUE, NAME_MAX_LENGTH,
                                PASSWORD_MAX_LENGTH, ROLE_ADMIN, ROLE_INDEX,
-                               ROLE_MODERATOR, ROLES, STR_OUTPUT_LIMIT)
+                               ROLE_MODERATOR, ROLES, STR_OUTPUT_LIMIT,)
 
 
 def validate_year(value):
@@ -23,16 +23,24 @@ def validate_year(value):
 
 class User(AbstractUser):
     max_role_length = max(len(role[ROLE_INDEX]) for role in ROLES)
-    password = models.CharField(blank=True,
-                                null=True,
-                                max_length=PASSWORD_MAX_LENGTH)
+    password = models.CharField(
+        blank=True,
+        # null=True,
+        max_length=PASSWORD_MAX_LENGTH,
+        default=""
+    )
     email = models.EmailField('Почта',
                               unique=True,
                               max_length=EMAIL_MAX_LENGTH)
     role = models.CharField('Роль', choices=ROLES,
                             max_length=max_role_length,
                             default=DEFAULT_ROLE)
-    bio = models.TextField('Биография', blank=True, null=True)
+    bio = models.TextField(
+        'Биография',
+        blank=True,
+        # null=True
+        default="Пока здесь ничего нет"
+    )
 
     class Meta:
         verbose_name = 'пользователь'
