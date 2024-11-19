@@ -25,9 +25,8 @@ class User(AbstractUser):
     max_role_length = max(len(role[ROLE_INDEX]) for role in ROLES)
     password = models.CharField(
         blank=True,
-        # null=True,
-        max_length=PASSWORD_MAX_LENGTH,
-        default=""
+        null=True,
+        max_length=PASSWORD_MAX_LENGTH
     )
     email = models.EmailField('Почта',
                               unique=True,
@@ -38,8 +37,7 @@ class User(AbstractUser):
     bio = models.TextField(
         'Биография',
         blank=True,
-        # null=True
-        default="Пока здесь ничего нет"
+        null=True
     )
 
     class Meta:
