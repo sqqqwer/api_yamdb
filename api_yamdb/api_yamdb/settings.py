@@ -101,7 +101,7 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256'
 }
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
@@ -117,3 +117,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+FROM_EMAIL = 'from@example.com'
