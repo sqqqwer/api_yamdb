@@ -9,7 +9,7 @@ from reviews.models import (
     User
 )
 
-from reviews.constants import ADD_USER_FIELDS, EDIT_USER_FIELDS
+from reviews.constants import ADDITIONAL_USER_FIELDS
 
 
 class TagMixin:
@@ -82,7 +82,8 @@ class CommentAdmin(admin.ModelAdmin):
     list_display_links = ('author',)
 
 
-class MyUserAdmin(BaseUserAdmin):
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
     model = User
-    fieldsets = BaseUserAdmin.fieldsets + ADD_USER_FIELDS
-    add_fieldsets = BaseUserAdmin.add_fieldsets + EDIT_USER_FIELDS
+    fieldsets = BaseUserAdmin.fieldsets + ADDITIONAL_USER_FIELDS
+    add_fieldsets = BaseUserAdmin.add_fieldsets + ADDITIONAL_USER_FIELDS
