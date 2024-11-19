@@ -1,6 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from reviews.constants import NAME_MAX_LENGTH, STR_OUTPUT_LIMIT
+
+User = get_user_model()
 
 
 class AbstractTagModel(models.Model):
@@ -19,7 +22,7 @@ class AbstractTagModel(models.Model):
 
 class AbstractCommentReviewModel(models.Model):
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         verbose_name='Автор'
     )
