@@ -9,7 +9,7 @@ from reviews.abstracts import AbstractCommentReviewModel, AbstractTagModel
 from reviews.constants import (DEFAULT_ROLE, EMAIL_MAX_LENGTH, MAX_SCORE_VALUE,
                                MIN_SCORE_VALUE, NAME_MAX_LENGTH,
                                PASSWORD_MAX_LENGTH, ROLE_ADMIN, ROLE_INDEX,
-                               ROLE_MODERATOR, ROLES, STR_OUTPUT_LIMIT,)
+                               ROLE_MODERATOR, ROLES, STR_OUTPUT_LIMIT)
 
 
 def validate_year(value):

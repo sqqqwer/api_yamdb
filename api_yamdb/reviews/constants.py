@@ -27,9 +27,7 @@ ADDITIONAL_USER_FIELDS = (
     (None,
      {'fields': (
          'role',
-         'bio',
-         'is_admin',
-         'is_moderator'
+         'bio'
      )}
-     )
+     ),
 )

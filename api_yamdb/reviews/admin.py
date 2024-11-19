@@ -1,15 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from reviews.models import (
-    Category,
-    Comment,
-    Genre,
-    Review,
-    Title,
-    User
-)
 
 from reviews.constants import ADDITIONAL_USER_FIELDS
+from reviews.models import Category, Comment, Genre, Review, Title
+
+User = get_user_model()
 
 
 class TagMixin:
@@ -35,22 +31,32 @@ class CategoryAdmin(TagMixin, admin.ModelAdmin):
     pass
 
 
+class GenreTabular(admin.TabularInline):
+    model = Title.genre.through
+
+
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'year',
         'description',
-        'category'
+        'category',
+        'get_genres'
     )
     list_editable = (
         'year',
         'description',
         'category'
     )
+    inlines = (GenreTabular,)
     search_fields = ('name',)
     list_filter = ('genre', 'category',)
     list_display_links = ('name',)
+
+    @admin.display(description='genres')
+    def get_genres(self, obj):
+        return ', '.join([genre.name for genre in obj.genre.all()])
 
 
 @admin.register(Review)
@@ -85,5 +91,5 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model = User
-    fieldsets = BaseUserAdmin.fieldsets + ADDITIONAL_USER_FIELDS
-    add_fieldsets = BaseUserAdmin.add_fieldsets + ADDITIONAL_USER_FIELDS
+    fieldsets = ADDITIONAL_USER_FIELDS + BaseUserAdmin.fieldsets
+    add_fieldsets = ADDITIONAL_USER_FIELDS + BaseUserAdmin.add_fieldsets
