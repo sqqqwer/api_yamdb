@@ -16,8 +16,20 @@ USERNAME_MAX_LENGTH: Final[int] = 150
 DEFAULT_TITLE_RATING: Final[int] = 0
 BAN_USERNAME: Final[str] = 'me'
 
+
 ROLES = (
     (ROLE_USER, 'user'),
     (ROLE_MODERATOR, 'moderator'),
     (ROLE_ADMIN, 'admin')
+)
+
+ADDITIONAL_USER_FIELDS = (
+    (None,
+     {'fields': (
+         'role',
+         'bio',
+         'is_admin',
+         'is_moderator'
+     )}
+     )
 )
