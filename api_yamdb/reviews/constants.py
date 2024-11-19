@@ -15,7 +15,6 @@ MIN_SCORE_VALUE: Final[int] = 1
 USERNAME_MAX_LENGTH: Final[int] = 150
 DEFAULT_TITLE_RATING: Final[int] = 0
 BAN_USERNAME: Final[str] = 'me'
-MAX_LENGTH_ROLES = 64
 
 
 ROLES = (
@@ -24,36 +23,13 @@ ROLES = (
     (ROLE_ADMIN, 'admin')
 )
 
-ADD_USER_FIELDS = (
-    (None,
-     {'fields': ('username',)}
-     ),
-    (("Personal info"),
-     {"fields": ("first_name", "last_name", "email")}
-     ),
-    (("Permissions"),
-     {"fields":
-         (
-             "is_active",
-             "is_staff",
-             "is_superuser",
-         ),
-      }
-     ),
-    (("Important dates"),
-     {"fields": ("date_joined",)})
-)
-EDIT_USER_FIELDS = (
+ADDITIONAL_USER_FIELDS = (
     (None,
      {'fields': (
-         'first_name',
-         'last_name',
-         'email',
          'role',
          'bio',
-         'is_staff',
-         'is_active',
-         'date_joined'
+         'is_admin',
+         'is_moderator'
      )}
      )
 )
