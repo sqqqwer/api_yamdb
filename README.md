@@ -100,7 +100,7 @@ python manage.py migrate
 ```
 2. Запустите импортёр.
 ```shell
-python manage.py loadfromcsv '<project_dir>/api_yamdb/static/data'
+python manage.py load_from_csv '<project_dir>/api_yamdb/static/data'
 ```
 
 ## 8. Примеры запросов
