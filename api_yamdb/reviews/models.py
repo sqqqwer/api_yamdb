@@ -106,7 +106,7 @@ class Review(AbstractCommentReviewModel):
     score = models.IntegerField(
         'Оценка пользователя',
         validators=[MinValueValidator(MIN_SCORE_VALUE),
-                    MaxValueValidator(MAX_SCORE_VALUE),]
+                    MaxValueValidator(MAX_SCORE_VALUE)]
     )
     title = models.ForeignKey(
         Title,
