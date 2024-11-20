@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from reviews.constants import ADDITIONAL_USER_FIELDS
+from reviews.constants import (ADDITIONAL_EDITABLE_USER_FIELDS,
+                               ADDITIONAL_USER_FIELDS)
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
@@ -69,6 +70,7 @@ class ReviewAdmin(admin.ModelAdmin):
         'title'
     )
     list_editable = ('text',)
+    search_fields = ('title__name',)
     list_filter = ('score', 'pub_date', 'score')
     list_display_links = ('author',)
 
@@ -83,7 +85,7 @@ class CommentAdmin(admin.ModelAdmin):
     )
 
     list_editable = ('text',)
-    search_fields = ('text', 'author',)
+    search_fields = ('text', 'author__username', 'author__email')
     list_filter = ('pub_date', 'author', 'review')
     list_display_links = ('author',)
 
@@ -93,3 +95,5 @@ class UserAdmin(BaseUserAdmin):
     model = User
     fieldsets = ADDITIONAL_USER_FIELDS + BaseUserAdmin.fieldsets
     add_fieldsets = ADDITIONAL_USER_FIELDS + BaseUserAdmin.add_fieldsets
+    list_display = BaseUserAdmin.list_display + ADDITIONAL_EDITABLE_USER_FIELDS
+    list_editable = ADDITIONAL_EDITABLE_USER_FIELDS
