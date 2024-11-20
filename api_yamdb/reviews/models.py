@@ -1,7 +1,4 @@
-from datetime import datetime
-
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -10,15 +7,7 @@ from reviews.constants import (DEFAULT_ROLE, EMAIL_MAX_LENGTH, MAX_SCORE_VALUE,
                                MIN_SCORE_VALUE, NAME_MAX_LENGTH,
                                PASSWORD_MAX_LENGTH, ROLE_ADMIN, ROLE_INDEX,
                                ROLE_MODERATOR, ROLES, STR_OUTPUT_LIMIT)
-
-
-def validate_year(value):
-    current_year = datetime.now().year
-    if value > current_year:
-        raise ValidationError(
-            f'Год выпуска (издания) не может быть больше текущего: '
-            f'{current_year}'
-        )
+from reviews.validators import validate_year
 
 
 class User(AbstractUser):
@@ -100,10 +89,7 @@ class Title(models.Model):
 
 
 class Review(AbstractCommentReviewModel):
-    text = models.TextField(
-        'Текст отзыва',
-    )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         'Оценка пользователя',
         validators=[MinValueValidator(MIN_SCORE_VALUE),
                     MaxValueValidator(MAX_SCORE_VALUE),]
@@ -141,9 +127,6 @@ class TitleGenre(models.Model):
 
 
 class Comment(AbstractCommentReviewModel):
-    text = models.TextField(
-        'Текст комментария'
-    )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
