@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -8,17 +9,17 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from api_yamdb.settings import FROM_EMAIL
-from reviews.constants import (BAN_USERNAME, DEFAULT_TITLE_RATING,
-                               EMAIL_MAX_LENGTH, MAX_SCORE_VALUE,
-                               MIN_SCORE_VALUE, ROLES, USERNAME_MAX_LENGTH)
+from reviews.constants import (BAN_USERNAME, DEFAULT_ROLE,
+                               DEFAULT_TITLE_RATING, EMAIL_MAX_LENGTH,
+                               MAX_SCORE_VALUE, MIN_SCORE_VALUE, ROLES,
+                               USERNAME_MAX_LENGTH)
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
 
-class PostPatchReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с созданием или изменением отзывов."""
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с отзывами."""
 
     author = serializers.SlugRelatedField(
         slug_field='username',
@@ -46,19 +47,6 @@ class PostPatchReviewSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class GetReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для получения отзывов."""
-
-    author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-    )
-
-    class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
-        model = Review
-
-
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с жанрами."""
 
@@ -75,22 +63,8 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
-class GetTitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы получения данных о произведении."""
-
-    genre = GenreSerializer(read_only=True, many=True)
-    category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(
-        read_only=True, default=DEFAULT_TITLE_RATING)
-
-    class Meta:
-        fields = ('id', 'name', 'year', 'rating',
-                  'description', 'genre', 'category')
-        model = Title
-
-
-class PostPatchTitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с созданием или изменением произведений."""
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы c произведении."""
 
     genre = serializers.SlugRelatedField(
         slug_field='slug',
@@ -103,9 +77,11 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
     year = serializers.IntegerField()
+    rating = serializers.IntegerField(
+        read_only=True, default=DEFAULT_TITLE_RATING)
 
     class Meta:
-        fields = ('id', 'name', 'year',
+        fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
 
@@ -116,7 +92,11 @@ class PostPatchTitleSerializer(serializers.ModelSerializer):
         return value
 
     def to_representation(self, instance):
-        response = GetTitleSerializer().to_representation(instance)
+        response = super().to_representation(instance)
+        response['genre'] = GenreSerializer(many=True).to_representation(
+            instance.genre)
+        response['category'] = GenreSerializer().to_representation(
+            instance.category)
         return response
 
 
@@ -136,7 +116,6 @@ class RegistrationSerializer(serializers.Serializer):
         return username
 
     def validate(self, attrs):
-        print(attrs['username'])
         user_with_username = User.objects.filter(
             username=attrs['username']).first()
         if user_with_username and user_with_username.email != attrs['email']:
@@ -149,12 +128,12 @@ class RegistrationSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
-        user, is_created = User.objects.get_or_create(**validated_data)
+        user, _ = User.objects.get_or_create(**validated_data)
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject='Code of api_yamdb',
             message=confirmation_code,
-            from_email=FROM_EMAIL,
+            from_email=settings.FROM_EMAIL,
             recipient_list=[user.email],
         )
         return user
@@ -179,7 +158,7 @@ class TokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с пользователями."""
 
-    role = serializers.ChoiceField(choices=ROLES, default='user')
+    role = serializers.ChoiceField(choices=ROLES, default=DEFAULT_ROLE)
 
     class Meta:
         fields = ('username', 'email', 'first_name',

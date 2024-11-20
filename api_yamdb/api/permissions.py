@@ -5,10 +5,10 @@ User = get_user_model()
 
 
 class IsAuthorOrStaff(permissions.BasePermission):
-    (
-        """Пермишн, который дает доступ на редактрование только авторам, """
-        """админам, модераторам. А безопасные методы пропускает.
-""")
+    """Пермишн, который дает доступ на редактрование авторам.
+
+    Пропускает: авторов, модераторов, админов и если безопастный метод.
+    """
 
     def has_object_permission(self, request, view, obj):
         return (
@@ -20,24 +20,16 @@ class IsAuthorOrStaff(permissions.BasePermission):
 
 
 class IsRoleAdmin(permissions.BasePermission):
+    """Пермишн, который пропускает только админов."""
+
     def has_permission(self, request, view):
         return (request.user.is_authenticated
                 and request.user.is_admin)
 
 
 class IsRoleAdminOrReadOnly(IsRoleAdmin):
-    def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or super().has_permission(request, view))
+    """Пермишн, который пропускает только если метод безопасный или админов."""
 
-
-class IsRoleModerator(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated
-                and request.user.is_moderator)
-
-
-class IsRoleModeratorOrReadOnly(IsRoleModerator):
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
                 or super().has_permission(request, view))
