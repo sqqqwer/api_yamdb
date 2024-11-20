@@ -31,3 +31,4 @@ ADDITIONAL_USER_FIELDS = (
      )}
      ),
 )
+ADDITIONAL_EDITABLE_USER_FIELDS = ('role',)
