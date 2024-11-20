@@ -28,6 +28,9 @@ class AbstractCommentReviewModel(models.Model):
         auto_now_add=True,
         db_index=True
     )
+    text = models.TextField(
+        'Текст'
+    )
 
     class Meta:
         abstract = True
